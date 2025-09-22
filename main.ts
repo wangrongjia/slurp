@@ -114,7 +114,8 @@ export default class SlurpPlugin extends Plugin {
 	async slurp(url: string): Promise<void> {
 		this.logger.debug("slurping", {url});
 		try {
-			const doc = new DOMParser().parseFromString(await fetchHtml(url), 'text/html');
+			const html = await fetchHtml(url);
+			const doc = new DOMParser().parseFromString(html, 'text/html');
 
 			const article: IArticle = {
 				slurpedTime: new Date(),
@@ -130,7 +131,7 @@ export default class SlurpPlugin extends Plugin {
 			const mergedMetadata = mergeMetadata(article, parsedMetadata);
 			this.logger.debug("merged metadata", parsedMetadata);
 
-			const md = parseMarkdown(article.content);
+			const md = parseMarkdown(html);
 			this.logger.debug("converted page to markdown", md);
 
 			await this.slurpNewNoteCallback({

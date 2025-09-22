@@ -3,6 +3,11 @@ import sveltePreprocess from "svelte-preprocess";
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import { performance } from 'perf_hooks';
+
+// Add global objects that might be missing in the build environment
+global.window = {};
+global.performance = performance;
 
 const banner =
 	`/*
@@ -42,10 +47,19 @@ const context = await esbuild.context({
 	outfile: "main.js",
 	plugins: [
 		esbuildSvelte({
-			compilerOptions: { css: true },
-			preprocess: sveltePreprocess(),
+			compilerOptions: { 
+				css: true,
+				hydratable: true
+			},
+			preprocess: sveltePreprocess({
+				sourceMap: !prod
+			}),
 		}),
-	]
+	],
+	define: {
+		'global.performance': 'performance',
+		'global.window': 'window'
+	}
 });
 
 if (prod) {
